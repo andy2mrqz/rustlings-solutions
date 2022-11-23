@@ -36,21 +36,22 @@ fn build_scores_table(results: String) -> HashMap<String, Team> {
         let team_2_name = v[1].to_string();
         let team_2_score: u8 = v[3].parse().unwrap();
 
-        let team_1 = scores.entry(team_1_name.clone()).or_insert(Team {
-            name: team_1_name,
-            goals_scored: 0,
-            goals_conceded: 0,
-        });
-        team_1.goals_scored += team_1_score;
-        team_1.goals_conceded += team_2_score;
-
-        let team_2 = scores.entry(team_2_name.clone()).or_insert(Team {
-            name: team_2_name,
-            goals_scored: 0,
-            goals_conceded: 0,
-        });
-        team_2.goals_scored += team_2_score;
-        team_2.goals_conceded += team_1_score;
+        for (name, goals_scored, goals_conceded) in [
+            (team_1_name, team_1_score, team_2_score),
+            (team_2_name, team_2_score, team_1_score),
+        ] {
+            scores
+                .entry(name.clone())
+                .and_modify(|team| {
+                    team.goals_scored += goals_scored;
+                    team.goals_conceded += goals_conceded;
+                })
+                .or_insert(Team {
+                    name,
+                    goals_scored,
+                    goals_conceded,
+                });
+        }
     }
     scores
 }
