@@ -26,11 +26,11 @@ struct Team {
 }
 
 impl Team {
-    fn empty(name: String) -> Self {
+    fn new(name: String, goals_scored: u8, goals_conceded: u8) -> Self {
         Team {
             name,
-            goals_scored: 0,
-            goals_conceded: 0,
+            goals_scored,
+            goals_conceded,
         }
     }
 }
@@ -46,27 +46,21 @@ fn build_scores_table(results: String) -> HashMap<String, Team> {
         let team_2_name = v[1].to_string();
         let team_2_score: u8 = v[3].parse().unwrap();
 
-        let team_1 = &Team::empty(team_1_name.clone());
-        let team_1 = scores.get(&team_1_name).unwrap_or(team_1);
-        scores.insert(
-            team_1_name.clone(),
-            Team {
-                name: team_1_name.clone(),
-                goals_scored: team_1.goals_scored + team_1_score,
-                goals_conceded: team_1.goals_conceded + team_2_score,
-            },
-        );
+        scores
+            .entry(team_1_name.clone())
+            .and_modify(|team| {
+                team.goals_scored += team_1_score;
+                team.goals_conceded += team_2_score;
+            })
+            .or_insert(Team::new(team_1_name.clone(), team_1_score, team_2_score));
 
-        let team_2 = &Team::empty(team_2_name.clone());
-        let team_2 = scores.get(&team_2_name).unwrap_or(team_2);
-        scores.insert(
-            team_2_name.clone(),
-            Team {
-                name: team_2_name.clone(),
-                goals_scored: team_2.goals_scored + team_2_score,
-                goals_conceded: team_2.goals_conceded + team_1_score,
-            },
-        );
+        scores
+            .entry(team_2_name.clone())
+            .and_modify(|team| {
+                team.goals_scored += team_2_score;
+                team.goals_conceded += team_1_score;
+            })
+            .or_insert(Team::new(team_2_name.clone(), team_2_score, team_1_score));
     }
     scores
 }
